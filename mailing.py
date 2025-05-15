@@ -4,6 +4,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import re
+import random
+import string
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import Select
+
+class RandomNumberGenerator:
+    def __init__(self, length=10):
+        self.length = length
+
+    def generate(self):
+        return ''.join(random.choices(string.digits, k=self.length))
 
 class TempMailExtractor:
     def __init__(self, driver):
@@ -12,6 +24,7 @@ class TempMailExtractor:
 
     def open_temp_mail(self):
         self.driver.execute_script("window.open('https://temp-mail.io/en');")
+        time.sleep(5)
         WebDriverWait(self.driver, 10).until(lambda d: len(d.window_handles) > 1)
         self.driver.switch_to.window(self.driver.window_handles[-1])
 
@@ -74,7 +87,9 @@ WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "firstN
 driver.find_element(By.NAME, "firstName").send_keys("John")
 driver.find_element(By.NAME, "lastName").send_keys("Doe")
 driver.find_element(By.NAME, "email").send_keys(temp_email)
-driver.find_element(By.NAME, "phoneNumber").send_keys("9813837494")
+rng = RandomNumberGenerator()
+number=rng.generate()
+driver.find_element(By.NAME, "phoneNumber").send_keys(number)
 driver.find_element(By.NAME, "password").send_keys("MyStrongPassword123!")
 driver.find_element(By.NAME, "confirmPassword").send_keys("MyStrongPassword123!")
 driver.find_element(By.XPATH, "//button[text()='Next']").click()
@@ -133,18 +148,128 @@ region_button = WebDriverWait(driver, 10).until(
     ))
 )
 region_button.click()
-region_button.send_keys("Nepal")
-time.sleep(5)
 
-# Step 6: Wait for the "Next" button to be clickable and click it
+#here i need to insert the name of the country, as region btn opens a search menu for the countries, we can type there 
+search_input = WebDriverWait(driver, 10).until(
+    EC.visibility_of_element_located((
+        By.XPATH,
+        "/html/body/div[4]/div[1]/div[1]/input[1]"
+    ))
+)
+
+
+country_name = "Canada"
+search_input.send_keys(country_name)
+
+# Click result
+result_item = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((
+        By.XPATH,
+        "/html/body/div[4]/div[1]/div[2]/div[1]/div[1]/div[1]"
+    ))
+)
+result_item.click()
+
+# Simulate pressing ESC to close the dropdown
+actions = ActionChains(driver)
+actions.send_keys(Keys.ESCAPE).perform()
+
+# Wait for the dropdown/search overlay to disappear
 WebDriverWait(driver, 10).until(
+    EC.invisibility_of_element_located((
+        By.XPATH,
+        "/html/body/div[4]/div[1]/div[1]/input[1]"
+    ))
+)
+
+# Now click the Next button
+next_button = WebDriverWait(driver, 10).until(
     EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Next')]"))
 )
-next_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Next')]")
 next_button.click()
 
-# Step 7: Optional: Wait for the next page to load or perform further actions
-time.sleep(3)  # Optional, you can replace this with WebDriverWait for a specific condition
+# Optional: wait after clicking
+time.sleep(3)
 
-# Close driver after the task is complete
-# driver.quit()
+experience_dropdown_button = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((
+        By.XPATH,
+        "//button[@role='combobox' and .//span[contains(., 'Select Your Experience Level')]]"
+    ))
+)
+experience_dropdown_button.click()
+
+options_container = WebDriverWait(driver, 10).until(
+    EC.visibility_of_element_located((By.XPATH, "//div[@role='presentation']//div[1]"))
+)
+
+option_to_click = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((
+        By.XPATH,
+        f"//div[@role='presentation']//div[1]"  # Replace with actual option selector
+    ))
+)
+option_to_click.click()
+
+actions = ActionChains(driver)
+actions.send_keys(Keys.ESCAPE).perform()
+
+# Enter value into number_of_students_recruited_annually
+num_students_input = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.NAME, "number_of_students_recruited_annually"))
+)
+num_students_input.clear()
+num_students_input.send_keys("1000")
+
+# Enter value into success_metrics
+success_metrics_input = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.NAME, "success_metrics"))
+)
+success_metrics_input.clear()
+success_metrics_input.send_keys("20%")
+
+# Enter value into focus_area
+focus_area_input = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.NAME, "focus_area"))
+)
+focus_area_input.clear()
+focus_area_input.send_keys("Computer Science")
+
+time.sleep(3)
+
+container = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.CSS_SELECTOR, "div.flex.gap-1.lg\\:gap-3.flex-wrap"))
+)
+
+# Find all checkbox wrapper divs inside container
+checkbox_wrappers = container.find_elements(By.CSS_SELECTOR, "div.flex.flex-row.items-start")
+
+# The labels you want to select (example)
+labels_to_select = ["Career Counseling", "Some Other Checkbox Label"]
+
+for wrapper in checkbox_wrappers:
+    # Find the label text inside this wrapper
+    label = wrapper.find_element(By.TAG_NAME, "label").text.strip()
+    
+    if label in labels_to_select:
+        # Find the checkbox button inside this wrapper and click it if not already checked
+        checkbox_btn = wrapper.find_element(By.CSS_SELECTOR, "button[role='checkbox']")
+        
+        # Check if it's already checked by reading aria-checked attribute
+        aria_checked = checkbox_btn.get_attribute("aria-checked")
+        if aria_checked == "false":
+            checkbox_btn.click()
+            print(f"Checked checkbox with label: {label}")
+        else:
+            print(f"Checkbox with label: {label} is already checked")
+
+
+
+
+next_button = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Next')]"))
+)
+next_button.click()
+
+time.sleep(3)
+
