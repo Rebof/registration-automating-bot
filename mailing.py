@@ -62,6 +62,17 @@ class TempMailExtractor:
         self.driver.close()
         self.driver.switch_to.window(self.main_window)
 
+
+def select_checkbox_by_label(label_text):
+    # Find <label> with text, then select the preceding-sibling <button>
+    checkbox_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((
+            By.XPATH,
+            f"//label[contains(text(), '{label_text}')]/preceding-sibling::button"
+        ))
+    )
+    checkbox_button.click()        
+
 # Initialize driver
 driver = webdriver.Chrome()
 
@@ -226,7 +237,7 @@ success_metrics_input = WebDriverWait(driver, 10).until(
     EC.presence_of_element_located((By.NAME, "success_metrics"))
 )
 success_metrics_input.clear()
-success_metrics_input.send_keys("20%")
+success_metrics_input.send_keys("20")
 
 # Enter value into focus_area
 focus_area_input = WebDriverWait(driver, 10).until(
@@ -273,3 +284,78 @@ next_button.click()
 
 time.sleep(3)
 
+
+
+
+business_reg_input = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.NAME, "business_registration_number"))
+)
+business_reg_input.send_keys("BRN-123456789")
+
+# Certification Details field
+certification_input = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.NAME, "certification_details"))
+)
+certification_input.send_keys("ISO 9001 Certified")
+
+country_dropdown_button = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[3]/div[4]/div[1]/div[1]/div[1]/div[2]/form[1]/div[1]/div[2]/button[1]"))
+)
+country_dropdown_button.click()
+
+search_input = WebDriverWait(driver, 10).until(
+    EC.visibility_of_element_located((By.XPATH, "//input[@placeholder='Search...']"))
+)
+search_input.clear()
+search_input.send_keys("Canada")
+
+country_option = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[4]/div[1]/div[2]/div[1]/div[1]/div[1]"))
+)
+country_option.click()
+
+# Step 4: Send ESC key to close the dropdown
+search_input.send_keys(Keys.ESCAPE)
+
+select_checkbox_by_label("Universities")
+select_checkbox_by_label("Colleges")
+
+time.sleep(3)
+
+import os
+from PIL import Image
+from pathlib import Path
+
+file_path = Path(__file__).parent / "dummy.png"
+
+if not os.path.exists(file_path):
+    img = Image.new('RGB', (100, 100), color=(255, 255, 255))  # white square
+    img.save(file_path)
+    print(f"File '{file_path}' created.")
+else:
+    print(f"File '{file_path}' already exists.")
+
+upload_input = driver.find_element(By.XPATH, "//input[@type='file']")
+upload_input.send_keys(str(file_path))
+
+
+time.sleep(3)
+
+next_button = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Submit')]"))
+)
+next_button.click()
+
+time.sleep(10)
+
+WebDriverWait(driver, 10).until(EC.url_contains("/admin/profile"))
+
+# Check if the redirection is successful
+current_url = driver.current_url
+if current_url == "https://authorized-partner.netlify.app/admin/profile":
+    print("✅ Successfully registered and redirected to profile page.")
+else:
+    print(f"❌ Registration may have failed. Current URL: {current_url}")
+
+time.sleep(10)
+driver.quit()    
