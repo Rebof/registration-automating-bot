@@ -20,8 +20,10 @@ assert "register" in driver.current_url, "❌ Registration page did not load."
 temp_mail = TempMailExtractor(driver)
 temp_mail.open_temp_mail()
 temp_email = temp_mail.get_email_address()
+time.sleep(2)
 assert "@" in temp_email, "❌ Failed to fetch a valid temporary email."
 temp_mail.switch_to_registration_tab()
+
 
 # Step 1: Initial checkbox and continue
 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "remember")))
@@ -30,6 +32,7 @@ if not checkbox.is_selected():
     checkbox.click()
     print("🟢 Remember checkbox selected.")
 driver.find_element(By.XPATH, "//button[text()='Continue']").click()
+
 
 # Step 2: Fill form
 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "firstName"))).send_keys("John")
@@ -42,6 +45,7 @@ driver.find_element(By.NAME, "confirmPassword").send_keys("MyStrongPassword123!"
 driver.find_element(By.XPATH, "//button[text()='Next']").click()
 print("📝 Submitted basic user details.")
 
+
 # Step 3: Get OTP
 time.sleep(10)
 temp_mail.switch_to_temp_mail_tab()
@@ -50,6 +54,7 @@ assert otp.isdigit() and len(otp) == 6, f"❌ OTP format invalid: {otp}"
 temp_mail.switch_to_registration_tab()
 driver.find_element(By.CSS_SELECTOR, 'input[data-input-otp="true"]').send_keys(otp)
 driver.find_element(By.XPATH, "//button[text()='Verify Code']").click()
+
 
 # Step 4: Agency details
 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "agency_name"))).send_keys("My Agency")
@@ -71,6 +76,8 @@ WebDriverWait(driver, 10).until(
 ActionChains(driver).send_keys(Keys.ESCAPE).perform()
 
 driver.find_element(By.XPATH, "//button[contains(text(), 'Next')]").click()
+print("📝 Submitted Agency details.")
+
 
 # Step 5: Experience details
 WebDriverWait(driver, 10).until(
@@ -95,7 +102,9 @@ for label in checkbox_labels:
     select_checkbox_by_label(driver, label)
 
 driver.find_element(By.XPATH, "//button[contains(text(), 'Next')]").click()
+print("📝 Submitted Experience details.")
 time.sleep(3)
+
 
 # Step 6: Final details
 select_checkbox_by_label_final(driver, "Universities")
@@ -120,10 +129,12 @@ upload_input.send_keys(upload_path)
 
 driver.find_element(By.XPATH, "//button[contains(text(), 'Submit')]").click()
 
+
 # Final assertion
 WebDriverWait(driver, 10).until(EC.url_contains("/admin/profile"))
 final_url = driver.current_url
 assert final_url == "https://authorized-partner.netlify.app/admin/profile", f"❌ Expected success page but got {final_url}"
 print("✅ Successfully completed registration!")
+time.sleep(4)
 
 driver.quit()
