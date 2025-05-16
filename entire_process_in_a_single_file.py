@@ -201,7 +201,7 @@ next_button.click()
 
 # Optional: wait after clicking
 time.sleep(3)
-
+#new section
 experience_dropdown_button = WebDriverWait(driver, 10).until(
     EC.element_to_be_clickable((
         By.XPATH,
@@ -286,7 +286,7 @@ time.sleep(3)
 
 
 
-
+#new section
 business_reg_input = WebDriverWait(driver, 10).until(
     EC.presence_of_element_located((By.NAME, "business_registration_number"))
 )
@@ -322,6 +322,7 @@ select_checkbox_by_label("Colleges")
 
 time.sleep(3)
 
+#file upoad procedure
 import os
 from PIL import Image
 from pathlib import Path
@@ -350,6 +351,8 @@ time.sleep(10)
 
 WebDriverWait(driver, 10).until(EC.url_contains("/admin/profile"))
 
+
+#just check if successfull or not
 # Check if the redirection is successful
 current_url = driver.current_url
 if current_url == "https://authorized-partner.netlify.app/admin/profile":
